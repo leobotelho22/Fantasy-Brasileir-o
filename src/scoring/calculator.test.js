@@ -124,10 +124,12 @@ for (const pos of ['GOL', 'ZAG', 'LAT', 'MEI', 'ATA']) {
   esperar(`${pos}: 2 desarmes = +3.0`, calcularPontuacao(pos, { desarme: 2 }).total, 3);
 }
 
-secao('Scout GS — Gol Sofrido (todos)');
+secao('Scout GS — Gol Sofrido (exclusivo GOL)');
 
-for (const pos of ['GOL', 'ZAG', 'LAT', 'MEI', 'ATA']) {
-  esperar(`${pos}: 2 GS = -2`, calcularPontuacao(pos, { golSofrido: 2 }).total, -2);
+esperar('GOL: 2 GS = -2', calcularPontuacao('GOL', { golSofrido: 2 }).total, -2);
+
+for (const pos of ['ZAG', 'LAT', 'MEI', 'ATA']) {
+  esperar(`${pos}: GS ignorado (0 pts)`, calcularPontuacao(pos, { golSofrido: 3 }).total, 0);
 }
 
 secao('Scout GC — Gol Contra (todos)');
@@ -191,9 +193,10 @@ const time = calcularPontuacaoTime([
   { posicao: 'ZAG', stats: { gol: 1, desarme: 2 } },               // 8 + 3 = 11
   { posicao: 'LAT', stats: { assistencia: 1, jogoSemGol: 1 } },    // 5 + 5 = 10
   { posicao: 'MEI', stats: { gol: 1, finalizacaoDefendida: 2 } },  // 8 + 2.4 = 10.4
-  { posicao: 'ATA', ehCapitao: true, stats: { gol: 2 } },          // (16) × 2 = 32
+  { posicao: 'ATA', ehCapitao: true, stats: { gol: 2 } },          // 16 × 2 = 32
 ]);
 
+// ZAG, LAT, MEI, ATA NÃO perdem ponto por golSofrido
 esperar('Time: GOL(10.2) + ZAG(11) + LAT(10) + MEI(10.4) + CAP_ATA(32) = 73.6',
   time.totalTime, 73.6);
 esperar('5 jogadores processados', time.jogadores.length, 5);

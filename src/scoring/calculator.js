@@ -17,10 +17,10 @@ const { REGRAS_POR_POSICAO, LIMITES } = require('./rules');
 //            finalizacaoForA, faltaSofrida, penaltiSofrido, impedimento,
 //            penaltiPerdidoForA, penaltiPerdidoDefendido, penaltiPerdidoTrave
 //   Defesa: jogoSemGol, desarme, golContra, cartaoVermelho, cartaoAmarelo,
-//            golSofrido, faltaCometida, penaltiCometido
+//            faltaCometida, penaltiCometido
 //
 // GOL (igual ao campo, com exceções):
-//   + defesa (DD), defesaPenalti (DP)
+//   + defesa (DD), defesaPenalti (DP), golSofrido (GS) — exclusivos do GOL
 //   - finalizacaoForA (FF não é válido para goleiros)
 //
 // TEC: vitoria | empate | derrota (mutuamente exclusivos),

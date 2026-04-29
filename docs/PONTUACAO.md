@@ -37,22 +37,22 @@ Valem para **todos os jogadores** (GOL, ZAG, LAT, MEI, ATA).
 
 ## Scouts de Defesa
 
-Valem para **todos os jogadores** (GOL, ZAG, LAT, MEI, ATA).
+Valem para **todos os jogadores** (GOL, ZAG, LAT, MEI, ATA), exceto onde indicado.
 
-| Sigla | Evento | Pontos |
-|:---:|---|:---:|
-| **SG** | Jogo sem sofrer gol | **+5** |
-| **DD** | Defesa ¹ | **+1.3** |
-| **DP** | Defesa de Pênalti ¹ | **+7** |
-| **DS** | Desarme | **+1.5** |
-| **GC** | Gol Contra | **-3** |
-| **CV** | Cartão Vermelho | **-3** |
-| **CA** | Cartão Amarelo | **-1** |
-| **GS** | Gol Sofrido | **-1** |
-| **FC** | Falta Cometida | **-0.3** |
-| **PC** | Pênalti Cometido | **-1** |
+| Sigla | Evento | Pontos | Quem pontua |
+|:---:|---|:---:|---|
+| **SG** | Jogo sem sofrer gol | **+5** | Todos |
+| **DD** | Defesa ¹ | **+1.3** | Só GOL |
+| **DP** | Defesa de Pênalti ¹ | **+7** | Só GOL |
+| **GS** | Gol Sofrido ¹ | **-1** | Só GOL |
+| **DS** | Desarme | **+1.5** | Todos |
+| **GC** | Gol Contra | **-3** | Todos |
+| **CV** | Cartão Vermelho | **-3** | Todos |
+| **CA** | Cartão Amarelo | **-1** | Todos |
+| **FC** | Falta Cometida | **-0.3** | Todos |
+| **PC** | Pênalti Cometido | **-1** | Todos |
 
-> ¹ **Scouts exclusivos do Goleiro (GOL).**
+> ¹ **Scouts exclusivos do Goleiro (GOL).** Jogadores de campo não perdem ponto por gol sofrido.
 
 ---
 
@@ -92,32 +92,32 @@ Exemplo: capitão com 1G + 1CA
 ## Tabela Resumida por Posição
 
 ```
-Scout  │ GOL  │ ZAG  │ LAT  │ MEI  │ ATA
-───────┼──────┼──────┼──────┼──────┼──────
-G      │  +8  │  +8  │  +8  │  +8  │  +8
-A      │  +5  │  +5  │  +5  │  +5  │  +5
-FT     │  +3  │  +3  │  +3  │  +3  │  +3
-FD     │ +1.2 │ +1.2 │ +1.2 │ +1.2 │ +1.2
-FF     │  —   │ +0.8 │ +0.8 │ +0.8 │ +0.8
-FS     │ +0.5 │ +0.5 │ +0.5 │ +0.5 │ +0.5
-PS     │  +1  │  +1  │  +1  │  +1  │  +1
-I      │ -0.1 │ -0.1 │ -0.1 │ -0.1 │ -0.1
-PP fora│ -3.2 │ -3.2 │ -3.2 │ -3.2 │ -3.2
-PP def │ -2.8 │ -2.8 │ -2.8 │ -2.8 │ -2.8
-PP trave│ -1  │  -1  │  -1  │  -1  │  -1
-───────┼──────┼──────┼──────┼──────┼──────
-SG     │  +5  │  +5  │  +5  │  +5  │  +5
-DD ★   │ +1.3 │  —   │  —   │  —   │  —
-DP ★   │  +7  │  —   │  —   │  —   │  —
-DS     │ +1.5 │ +1.5 │ +1.5 │ +1.5 │ +1.5
-GS     │  -1  │  -1  │  -1  │  -1  │  -1
-GC     │  -3  │  -3  │  -3  │  -3  │  -3
-CV     │  -3  │  -3  │  -3  │  -3  │  -3
-CA     │  -1  │  -1  │  -1  │  -1  │  -1
-FC     │ -0.3 │ -0.3 │ -0.3 │ -0.3 │ -0.3
-PC     │  -1  │  -1  │  -1  │  -1  │  -1
+Scout   │ GOL  │ ZAG  │ LAT  │ MEI  │ ATA
+────────┼──────┼──────┼──────┼──────┼──────
+G       │  +8  │  +8  │  +8  │  +8  │  +8
+A       │  +5  │  +5  │  +5  │  +5  │  +5
+FT      │  +3  │  +3  │  +3  │  +3  │  +3
+FD      │ +1.2 │ +1.2 │ +1.2 │ +1.2 │ +1.2
+FF      │  —   │ +0.8 │ +0.8 │ +0.8 │ +0.8
+FS      │ +0.5 │ +0.5 │ +0.5 │ +0.5 │ +0.5
+PS      │  +1  │  +1  │  +1  │  +1  │  +1
+I       │ -0.1 │ -0.1 │ -0.1 │ -0.1 │ -0.1
+PP fora │ -3.2 │ -3.2 │ -3.2 │ -3.2 │ -3.2
+PP def  │ -2.8 │ -2.8 │ -2.8 │ -2.8 │ -2.8
+PP trave│  -1  │  -1  │  -1  │  -1  │  -1
+────────┼──────┼──────┼──────┼──────┼──────
+SG      │  +5  │  +5  │  +5  │  +5  │  +5
+DD ★    │ +1.3 │  —   │  —   │  —   │  —
+DP ★    │  +7  │  —   │  —   │  —   │  —
+GS ★    │  -1  │  —   │  —   │  —   │  —
+DS      │ +1.5 │ +1.5 │ +1.5 │ +1.5 │ +1.5
+GC      │  -3  │  -3  │  -3  │  -3  │  -3
+CV      │  -3  │  -3  │  -3  │  -3  │  -3
+CA      │  -1  │  -1  │  -1  │  -1  │  -1
+FC      │ -0.3 │ -0.3 │ -0.3 │ -0.3 │ -0.3
+PC      │  -1  │  -1  │  -1  │  -1  │  -1
 
-★ = exclusivo do Goleiro
+★ = exclusivo do Goleiro (campo não perde ponto por GS)
 ```
 
 ---

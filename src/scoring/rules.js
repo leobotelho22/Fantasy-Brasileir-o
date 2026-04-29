@@ -2,8 +2,12 @@
  * Tabela de pontuação — Fantasy Brasileirão (scouts oficiais do Cartola FC)
  *
  * Regra de ouro: todos os jogadores de campo (ZAG, LAT, MEI, ATA) usam
- * EXATAMENTE a mesma tabela. Apenas o GOL tem scouts exclusivos e uma
- * exceção (FF — Finalização para fora não vale para goleiros).
+ * EXATAMENTE a mesma tabela. Apenas o GOL tem scouts exclusivos e exceções.
+ *
+ * Exceções do GOL:
+ *   - NÃO pontua em FF (Finalização para fora)
+ *   - SIM pontua em GS (Gol Sofrido) — exclusivo do GOL
+ *   - SIM pontua em DD (Defesa) e DP (Defesa de Pênalti) — exclusivos do GOL
  *
  * Posições: 'GOL' | 'ZAG' | 'LAT' | 'MEI' | 'ATA' | 'TEC'
  *
@@ -20,11 +24,11 @@
  *   SG  – Jogo Sem Gol sofrido
  *   DD  – Defesa                        (exclusivo GOL)
  *   DP  – Defesa de Pênalti             (exclusivo GOL)
+ *   GS  – Gol Sofrido                   (exclusivo GOL)
  *   DS  – Desarme
  *   GC  – Gol Contra
  *   CV  – Cartão Vermelho
  *   CA  – Cartão Amarelo
- *   GS  – Gol Sofrido
  *   FC  – Falta Cometida
  *   PC  – Pênalti Cometido
  */
@@ -49,6 +53,7 @@ const SCOUTS_ATAQUE_CAMPO = {
 
 // ---------------------------------------------------------------------------
 // Scouts de DEFESA — valem para todos os jogadores (campo e GOL)
+// GS (Gol Sofrido) NÃO está aqui — é exclusivo do GOL
 // ---------------------------------------------------------------------------
 const SCOUTS_DEFESA_COMUNS = {
   jogoSemGol:     5,      // SG — jogo sem sofrer gol
@@ -56,7 +61,6 @@ const SCOUTS_DEFESA_COMUNS = {
   golContra:     -3,      // GC
   cartaoVermelho:-3,      // CV
   cartaoAmarelo: -1,      // CA
-  golSofrido:    -1,      // GS
   faltaCometida: -0.3,    // FC
   penaltiCometido:-1,     // PC
 };
@@ -83,7 +87,8 @@ const REGRAS_POR_POSICAO = {
     // Defesa — scouts exclusivos do GOL
     defesa:         1.3,    // DD — cada defesa realizada
     defesaPenalti:  7,      // DP — defesa de pênalti
-    // Defesa — comuns
+    golSofrido:    -1,      // GS — exclusivo GOL (campo NÃO perde ponto por gol sofrido)
+    // Defesa — comuns (SG, DS, GC, CV, CA, FC, PC)
     ...SCOUTS_DEFESA_COMUNS,
   },
 
