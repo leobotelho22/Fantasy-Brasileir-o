@@ -9,33 +9,22 @@
 const { REGRAS_POR_POSICAO, LIMITES } = require('./rules');
 
 // ---------------------------------------------------------------------------
-// Tipos de estatísticas por posição (documentação para o dev)
+// Scouts disponíveis por posição
 // ---------------------------------------------------------------------------
 //
-// GOL: { gol, assistencia, defesaDificil, defesaPenalti, golSofrido,
-//        cartaoAmarelo, cartaoVermelho, golContra, penaltiCometido,
-//        penaltiPerdido, faltaCometida }
+// ZAG | LAT | MEI | ATA (mesma tabela para todos):
+//   Ataque: gol, assistencia, finalizacaoNaTrave, finalizacaoDefendida,
+//            finalizacaoForA, faltaSofrida, penaltiSofrido, impedimento,
+//            penaltiPerdidoForA, penaltiPerdidoDefendido, penaltiPerdidoTrave
+//   Defesa: jogoSemGol, desarme, golContra, cartaoVermelho, cartaoAmarelo,
+//            golSofrido, faltaCometida, penaltiCometido
 //
-// ZAG: { gol, assistencia, desarme, interceptacao, bloqueio,
-//        cartaoAmarelo, cartaoVermelho, golContra, penaltiCometido,
-//        penaltiPerdido, faltaCometida }
+// GOL (igual ao campo, com exceções):
+//   + defesa (DD), defesaPenalti (DP)
+//   - finalizacaoForA (FF não é válido para goleiros)
 //
-// LAT: { gol, assistencia, cruzamentoCerto, desarme, interceptacao,
-//        cartaoAmarelo, cartaoVermelho, golContra, penaltiCometido,
-//        penaltiPerdido, faltaCometida }
-//
-// MEI: { gol, assistencia, finalizacaoNaTrave, finalizacaoCerta,
-//        driblesCompletos, desarme,
-//        cartaoAmarelo, cartaoVermelho, golContra, penaltiCometido,
-//        penaltiPerdido, faltaCometida }
-//
-// ATA: { gol, assistencia, finalizacaoNaTrave, finalizacaoCerta,
-//        driblesCompletos,
-//        cartaoAmarelo, cartaoVermelho, golContra, penaltiCometido,
-//        penaltiPerdido, faltaCometida }
-//
-// TEC: { vitoria|empate|derrota (exclusivos), golMarcado, golSofrido,
-//        cartaoAmarelo, cartaoVermelho }
+// TEC: vitoria | empate | derrota (mutuamente exclusivos),
+//      golMarcado, golSofrido, cartaoAmarelo, cartaoVermelho
 
 // ---------------------------------------------------------------------------
 // Função principal

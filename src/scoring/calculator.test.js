@@ -1,13 +1,11 @@
 /**
- * Testes do sistema de pontuação — Fantasy Brasileirão
+ * Testes do sistema de pontuação — Fantasy Brasileirão (scouts Cartola FC)
  * Execute com: node src/scoring/calculator.test.js
- *
- * Não usa nenhuma biblioteca externa — roda com Node.js puro.
  */
 
 const { calcularPontuacao, calcularPontuacaoCapitao, calcularPontuacaoTime } = require('./calculator');
 
-// ── Utilitário de teste mínimo ────────────────────────────────────────────
+// ── Utilitário de teste ───────────────────────────────────────────────────
 
 let passou = 0;
 let falhou = 0;
@@ -19,263 +17,206 @@ function esperar(descricao, valorReal, valorEsperado) {
     passou++;
   } else {
     console.log(`  ✗ ${descricao}`);
-    console.log(`    Esperado: ${valorEsperado}`);
-    console.log(`    Recebido: ${valorReal}`);
+    console.log(`    Esperado: ${valorEsperado} | Recebido: ${valorReal}`);
     falhou++;
   }
 }
 
-function espararErro(descricao, erros, mensagemParcial) {
-  const encontrou = erros.some(e => e.includes(mensagemParcial));
-  if (encontrou) {
-    console.log(`  ✓ ${descricao}`);
-    passou++;
-  } else {
+function espararErro(descricao, erros, parcial) {
+  const ok = erros.some(e => e.includes(parcial));
+  if (ok) { console.log(`  ✓ ${descricao}`); passou++; }
+  else {
     console.log(`  ✗ ${descricao}`);
-    console.log(`    Esperado erro contendo: "${mensagemParcial}"`);
-    console.log(`    Erros recebidos: ${JSON.stringify(erros)}`);
+    console.log(`    Esperado erro com: "${parcial}" | Recebido: ${JSON.stringify(erros)}`);
     falhou++;
   }
 }
 
-function secao(titulo) {
-  console.log(`\n${titulo}`);
-  console.log('─'.repeat(titulo.length));
+function secao(t) { console.log(`\n${t}\n${'─'.repeat(t.length)}`); }
+
+// ── SCOUTS DE ATAQUE ─────────────────────────────────────────────────────
+
+secao('Scout G — Gol (todos os jogadores de campo)');
+
+for (const pos of ['ZAG', 'LAT', 'MEI', 'ATA']) {
+  esperar(`${pos}: 1 gol = +8`, calcularPontuacao(pos, { gol: 1 }).total, 8);
+}
+esperar('GOL: 1 gol = +8', calcularPontuacao('GOL', { gol: 1 }).total, 8);
+
+secao('Scout A — Assistência (todos)');
+
+for (const pos of ['GOL', 'ZAG', 'LAT', 'MEI', 'ATA']) {
+  esperar(`${pos}: 2 assistências = +10`, calcularPontuacao(pos, { assistencia: 2 }).total, 10);
 }
 
-// ── TESTES ────────────────────────────────────────────────────────────────
+secao('Scout FT — Finalização na Trave (todos)');
 
-secao('Goleiro');
+for (const pos of ['GOL', 'ZAG', 'LAT', 'MEI', 'ATA']) {
+  esperar(`${pos}: 1 FT = +3`, calcularPontuacao(pos, { finalizacaoNaTrave: 1 }).total, 3);
+}
 
+secao('Scout FD — Finalização Defendida (todos)');
+
+for (const pos of ['GOL', 'ZAG', 'LAT', 'MEI', 'ATA']) {
+  esperar(`${pos}: 1 FD = +1.2`, calcularPontuacao(pos, { finalizacaoDefendida: 1 }).total, 1.2);
+}
+
+secao('Scout FF — Finalização para Fora (campo apenas, NÃO vale para GOL)');
+
+for (const pos of ['ZAG', 'LAT', 'MEI', 'ATA']) {
+  esperar(`${pos}: 2 FF = +1.6`, calcularPontuacao(pos, { finalizacaoForA: 2 }).total, 1.6);
+}
+esperar('GOL: FF ignorado (0 pts)', calcularPontuacao('GOL', { finalizacaoForA: 3 }).total, 0);
+
+secao('Scout FS — Falta Sofrida (todos)');
+
+for (const pos of ['GOL', 'ZAG', 'LAT', 'MEI', 'ATA']) {
+  esperar(`${pos}: 4 FS = +2.0`, calcularPontuacao(pos, { faltaSofrida: 4 }).total, 2);
+}
+
+secao('Scout PS — Pênalti Sofrido (todos)');
+
+for (const pos of ['GOL', 'ZAG', 'LAT', 'MEI', 'ATA']) {
+  esperar(`${pos}: 1 PS = +1`, calcularPontuacao(pos, { penaltiSofrido: 1 }).total, 1);
+}
+
+secao('Scout I — Impedimento (todos)');
+
+for (const pos of ['GOL', 'ZAG', 'LAT', 'MEI', 'ATA']) {
+  esperar(`${pos}: 2 impedimentos = -0.2`, calcularPontuacao(pos, { impedimento: 2 }).total, -0.2);
+}
+
+secao('Scout PP — Pênalti Perdido (3 variantes, todos)');
+
+esperar('PP para fora: -3.2', calcularPontuacao('ATA', { penaltiPerdidoForA: 1 }).total, -3.2);
+esperar('PP defendido: -2.8', calcularPontuacao('ATA', { penaltiPerdidoDefendido: 1 }).total, -2.8);
+esperar('PP na trave: -1.0', calcularPontuacao('ATA', { penaltiPerdidoTrave: 1 }).total, -1);
+
+// PP na trave + FT juntos = -1 + 3 = +2 (trave após defesa conta como FT)
 esperar(
-  'defesa difícil: 3 × 3 = 9',
-  calcularPontuacao('GOL', { defesaDificil: 3 }).total,
-  9
-);
-
-esperar(
-  'defesa de pênalti: 1 × 7 = 7',
-  calcularPontuacao('GOL', { defesaPenalti: 1 }).total,
-  7
-);
-
-esperar(
-  'gol sofrido: 2 × -2 = -4',
-  calcularPontuacao('GOL', { golSofrido: 2 }).total,
-  -4
-);
-
-esperar(
-  'defesa difícil limitada a 5 mesmo passando 10',
-  calcularPontuacao('GOL', { defesaDificil: 10 }).total,
-  15  // 5 × 3
-);
-
-esperar(
-  'clean sheet: 4 defesas difíceis, 0 gols sofridos → 12',
-  calcularPontuacao('GOL', { defesaDificil: 4, golSofrido: 0 }).total,
-  12
-);
-
-secao('Zagueiro');
-
-esperar(
-  'gol: +6',
-  calcularPontuacao('ZAG', { gol: 1 }).total,
-  6
-);
-
-esperar(
-  'desarme + interceptação + bloqueio: 1.5 + 1.5 + 1 = 4',
-  calcularPontuacao('ZAG', { desarme: 1, interceptacao: 1, bloqueio: 1 }).total,
-  4
-);
-
-esperar(
-  'cartão vermelho: -5',
-  calcularPontuacao('ZAG', { cartaoVermelho: 1 }).total,
-  -5
-);
-
-esperar(
-  'gol contra: -3',
-  calcularPontuacao('ZAG', { golContra: 1 }).total,
-  -3
-);
-
-secao('Lateral');
-
-esperar(
-  'assistência + cruzamentos: 5 + 3×1.5 = 9.5',
-  calcularPontuacao('LAT', { assistencia: 1, cruzamentoCerto: 3 }).total,
-  9.5
-);
-
-esperar(
-  'pênalti cometido: -2',
-  calcularPontuacao('LAT', { penaltiCometido: 1 }).total,
-  -2
-);
-
-secao('Meia');
-
-esperar(
-  'gol: +5',
-  calcularPontuacao('MEI', { gol: 1 }).total,
-  5
-);
-
-esperar(
-  'assistência: +3.5',
-  calcularPontuacao('MEI', { assistencia: 1 }).total,
-  3.5
-);
-
-esperar(
-  'finalização certa: 2 × 3 = 6',
-  calcularPontuacao('MEI', { finalizacaoCerta: 2 }).total,
-  6
-);
-
-esperar(
-  'finalização na trave limitada a 2: 5 traves → 2×2 = 4',
-  calcularPontuacao('MEI', { finalizacaoNaTrave: 5 }).total,
-  4
-);
-
-esperar(
-  'falta cometida: 3 × -0.3 = -0.9',
-  calcularPontuacao('MEI', { faltaCometida: 3 }).total,
-  -0.9
-);
-
-secao('Atacante');
-
-esperar(
-  'hat-trick: 3 × 8 = 24',
-  calcularPontuacao('ATA', { gol: 3 }).total,
-  24
-);
-
-esperar(
-  '2 gols + 1 assistência + 1 cartão amarelo: 16 + 5 - 2 = 19',
-  calcularPontuacao('ATA', { gol: 2, assistencia: 1, cartaoAmarelo: 1 }).total,
-  19
-);
-
-esperar(
-  'drible: 4 × 0.5 = 2',
-  calcularPontuacao('ATA', { driblesCompletos: 4 }).total,
+  'PP trave + FT simultâneos = -1 + 3 = +2 (trave após defesa conta como FT)',
+  calcularPontuacao('ATA', { penaltiPerdidoTrave: 1, finalizacaoNaTrave: 1 }).total,
   2
 );
 
-esperar(
-  'stats zeradas → 0 pontos',
-  calcularPontuacao('ATA', { gol: 0, assistencia: 0 }).total,
-  0
-);
+// ── SCOUTS DE DEFESA ─────────────────────────────────────────────────────
+
+secao('Scout SG — Jogo Sem Gol (todos)');
+
+for (const pos of ['GOL', 'ZAG', 'LAT', 'MEI', 'ATA']) {
+  esperar(`${pos}: SG = +5`, calcularPontuacao(pos, { jogoSemGol: 1 }).total, 5);
+}
+
+secao('Scout DD — Defesa (exclusivo GOL)');
+
+esperar('GOL: 3 defesas = +3.9', calcularPontuacao('GOL', { defesa: 3 }).total, 3.9);
+esperar('ATA: defesa ignorada (0 pts)', calcularPontuacao('ATA', { defesa: 5 }).total, 0);
+esperar('MEI: defesa ignorada (0 pts)', calcularPontuacao('MEI', { defesa: 2 }).total, 0);
+
+secao('Scout DP — Defesa de Pênalti (exclusivo GOL)');
+
+esperar('GOL: 1 DP = +7', calcularPontuacao('GOL', { defesaPenalti: 1 }).total, 7);
+esperar('ZAG: DP ignorado (0 pts)', calcularPontuacao('ZAG', { defesaPenalti: 1 }).total, 0);
+
+secao('Scout DS — Desarme (todos)');
+
+for (const pos of ['GOL', 'ZAG', 'LAT', 'MEI', 'ATA']) {
+  esperar(`${pos}: 2 desarmes = +3.0`, calcularPontuacao(pos, { desarme: 2 }).total, 3);
+}
+
+secao('Scout GS — Gol Sofrido (todos)');
+
+for (const pos of ['GOL', 'ZAG', 'LAT', 'MEI', 'ATA']) {
+  esperar(`${pos}: 2 GS = -2`, calcularPontuacao(pos, { golSofrido: 2 }).total, -2);
+}
+
+secao('Scout GC — Gol Contra (todos)');
+
+for (const pos of ['GOL', 'ZAG', 'LAT', 'MEI', 'ATA']) {
+  esperar(`${pos}: 1 GC = -3`, calcularPontuacao(pos, { golContra: 1 }).total, -3);
+}
+
+secao('Scout CV — Cartão Vermelho (todos)');
+
+for (const pos of ['GOL', 'ZAG', 'LAT', 'MEI', 'ATA']) {
+  esperar(`${pos}: 1 CV = -3`, calcularPontuacao(pos, { cartaoVermelho: 1 }).total, -3);
+}
+
+secao('Scout CA — Cartão Amarelo (todos)');
+
+for (const pos of ['GOL', 'ZAG', 'LAT', 'MEI', 'ATA']) {
+  esperar(`${pos}: 1 CA = -1`, calcularPontuacao(pos, { cartaoAmarelo: 1 }).total, -1);
+}
+
+secao('Scout FC — Falta Cometida (todos)');
+
+for (const pos of ['GOL', 'ZAG', 'LAT', 'MEI', 'ATA']) {
+  esperar(`${pos}: 3 FC = -0.9`, calcularPontuacao(pos, { faltaCometida: 3 }).total, -0.9);
+}
+
+secao('Scout PC — Pênalti Cometido (todos)');
+
+for (const pos of ['GOL', 'ZAG', 'LAT', 'MEI', 'ATA']) {
+  esperar(`${pos}: 1 PC = -1`, calcularPontuacao(pos, { penaltiCometido: 1 }).total, -1);
+}
+
+// ── TÉCNICO ───────────────────────────────────────────────────────────────
 
 secao('Técnico');
 
-esperar(
-  'vitória + 2 gols marcados: 5 + 1 = 6',
-  calcularPontuacao('TEC', { vitoria: 1, golMarcado: 2 }).total,
-  6
-);
+esperar('Vitória + 3 gols marcados: 5 + 1.5 = 6.5',
+  calcularPontuacao('TEC', { vitoria: 1, golMarcado: 3 }).total, 6.5);
+esperar('Empate: +1',
+  calcularPontuacao('TEC', { empate: 1 }).total, 1);
+esperar('Derrota + 2 GS: -1 - 1 = -2',
+  calcularPontuacao('TEC', { derrota: 1, golSofrido: 2 }).total, -2);
 
-esperar(
-  'empate: +1',
-  calcularPontuacao('TEC', { empate: 1 }).total,
-  1
-);
+// ── CAPITÃO ───────────────────────────────────────────────────────────────
 
-esperar(
-  'derrota + 2 gols sofridos: -1 - 1 = -2',
-  calcularPontuacao('TEC', { derrota: 1, golSofrido: 2 }).total,
-  -2
-);
+secao('Capitão — pontuação dobrada');
 
-esperar(
-  'cartão amarelo do técnico: -0.5',
-  calcularPontuacao('TEC', { cartaoAmarelo: 1 }).total,
-  -0.5
-);
+esperar('ATA 2 gols como capitão: 16 × 2 = 32',
+  calcularPontuacaoCapitao('ATA', { gol: 2 }).total, 32);
+esperar('Negativos também dobram: CA como capitão = -2',
+  calcularPontuacaoCapitao('ATA', { cartaoAmarelo: 1 }).total, -2);
+esperar('totalSemBonus armazenado corretamente',
+  calcularPontuacaoCapitao('MEI', { gol: 1 }).totalSemBonus, 8);
 
-secao('Capitão (pontuação dobrada)');
-
-esperar(
-  'atacante 2 gols como capitão: (16) × 2 = 32',
-  calcularPontuacaoCapitao('ATA', { gol: 2 }).total,
-  32
-);
-
-esperar(
-  'capitão com pontos negativos também dobra: (-2) × 2 = -4',
-  calcularPontuacaoCapitao('ATA', { cartaoAmarelo: 1 }).total,
-  -4
-);
-
-esperar(
-  'campo totalSemBonus armazenado corretamente',
-  calcularPontuacaoCapitao('MEI', { gol: 1 }).totalSemBonus,
-  5
-);
+// ── TIME COMPLETO ─────────────────────────────────────────────────────────
 
 secao('Time completo');
 
 const time = calcularPontuacaoTime([
-  { posicao: 'GOL', stats: { defesaDificil: 2 } },           // 6
-  { posicao: 'ZAG', stats: { gol: 1 } },                     // 6
-  { posicao: 'LAT', stats: { assistencia: 1 } },             // 5
-  { posicao: 'MEI', stats: { gol: 1 } },                     // 5
-  { posicao: 'ATA', ehCapitao: true, stats: { gol: 1 } },    // 8 × 2 = 16
+  { posicao: 'GOL', stats: { defesa: 4, jogoSemGol: 1 } },         // 5.2 + 5 = 10.2
+  { posicao: 'ZAG', stats: { gol: 1, desarme: 2 } },               // 8 + 3 = 11
+  { posicao: 'LAT', stats: { assistencia: 1, jogoSemGol: 1 } },    // 5 + 5 = 10
+  { posicao: 'MEI', stats: { gol: 1, finalizacaoDefendida: 2 } },  // 8 + 2.4 = 10.4
+  { posicao: 'ATA', ehCapitao: true, stats: { gol: 2 } },          // (16) × 2 = 32
 ]);
 
-esperar(
-  'time com 5 jogadores: GOL(6) + ZAG(6) + LAT(5) + MEI(5) + CAP_ATA(16) = 38',
-  time.totalTime,
-  38
-);
+esperar('Time: GOL(10.2) + ZAG(11) + LAT(10) + MEI(10.4) + CAP_ATA(32) = 73.6',
+  time.totalTime, 73.6);
+esperar('5 jogadores processados', time.jogadores.length, 5);
 
-esperar(
-  'número de jogadores processados: 5',
-  time.jogadores.length,
-  5
-);
+// ── VALIDAÇÕES ────────────────────────────────────────────────────────────
 
 secao('Validações de erro');
 
-espararErro(
-  'posição inválida retorna erro',
-  calcularPontuacao('MEIA', { gol: 1 }).erros,
-  'Posição inválida'
-);
+espararErro('Posição inválida',
+  calcularPontuacao('MEIA', { gol: 1 }).erros, 'Posição inválida');
+espararErro('Técnico com dois resultados',
+  calcularPontuacao('TEC', { vitoria: 1, derrota: 1 }).erros, 'mais de um resultado');
+espararErro('stats nulo',
+  calcularPontuacao('ATA', null).erros, 'objeto');
+espararErro('Dois capitães',
+  calcularPontuacaoTime([
+    { posicao: 'ATA', ehCapitao: true, stats: { gol: 1 } },
+    { posicao: 'MEI', ehCapitao: true, stats: { gol: 1 } },
+  ]).erros, 'Apenas 1 capitão');
 
-espararErro(
-  'técnico com dois resultados retorna erro',
-  calcularPontuacao('TEC', { vitoria: 1, derrota: 1 }).erros,
-  'mais de um resultado'
-);
+// ── RESULTADO ─────────────────────────────────────────────────────────────
 
-espararErro(
-  'stats não-objeto retorna erro',
-  calcularPontuacao('ATA', null).erros,
-  'objeto'
-);
-
-const timeDoisCapitaes = calcularPontuacaoTime([
-  { posicao: 'ATA', ehCapitao: true, stats: { gol: 1 } },
-  { posicao: 'MEI', ehCapitao: true, stats: { gol: 1 } },
-]);
-espararErro(
-  'time com 2 capitães retorna erro',
-  timeDoisCapitaes.erros,
-  'Apenas 1 capitão'
-);
-
-// ── Resultado final ───────────────────────────────────────────────────────
-
-console.log(`\n${'═'.repeat(40)}`);
+console.log(`\n${'═'.repeat(42)}`);
 console.log(`Resultado: ${passou} passou | ${falhou} falhou`);
-console.log('═'.repeat(40));
+console.log('═'.repeat(42));
 if (falhou > 0) process.exit(1);
