@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Clock, Hammer, CheckCircle, Zap } from 'lucide-react';
+import { Clock, Hammer, CheckCircle, Zap, AlertTriangle } from 'lucide-react';
 import Badge from './Badge';
 import CoinBalance from './CoinBalance';
 import { Avatar } from './PlayerRow';
@@ -38,18 +38,24 @@ export default function AuctionCard({ auction, isHighBidder, onBid, onSimulateOu
   const { player } = auction;
   const { remaining, pct } = useAuctionTimer(auction.endsAt);
 
-  const urgent    = remaining < 3600_000 && remaining > 0;  // < 1 hour
-  const critical  = remaining < 600_000  && remaining > 0;  // < 10 min
+  const urgent    = remaining < 3600_000 && remaining > 0;
+  const critical  = remaining < 600_000  && remaining > 0;
   const finished  = remaining === 0;
 
-  const barColor = critical ? 'bg-danger' : urgent ? 'bg-warn' : 'bg-green';
+  const injured   = player.status === 'injured';
+  const suspended = player.status === 'suspended';
+  const unavail   = injured || suspended;
+
+  const barColor  = critical ? 'bg-danger' : urgent ? 'bg-warn' : 'bg-green';
   const timeColor = critical ? 'text-danger' : urgent ? 'text-warn' : 'text-sub';
 
   return (
     <div className={clsx(
       'card flex flex-col overflow-hidden transition-all',
       isHighBidder && 'border-green/40',
-      critical && !isHighBidder && 'border-danger/30',
+      critical && !isHighBidder && !unavail && 'border-danger/30',
+      injured   && 'border-danger/40',
+      suspended && 'border-warn/30',
     )}>
       {/* Winning banner */}
       {isHighBidder && (
@@ -58,16 +64,37 @@ export default function AuctionCard({ auction, isHighBidder, onBid, onSimulateOu
           <span className="text-green text-xs font-bold">Você está ganhando</span>
         </div>
       )}
-      {critical && !isHighBidder && !finished && (
+      {critical && !isHighBidder && !finished && !unavail && (
         <div className="flex items-center justify-center gap-1.5 bg-danger/10 border-b border-danger/20 py-1.5">
           <Zap size={12} className="text-danger" />
           <span className="text-danger text-xs font-bold">Encerrando em breve!</span>
         </div>
       )}
 
+      {/* Injury / suspension warning strip */}
+      {unavail && (
+        <div className={clsx(
+          'flex items-center gap-1.5 px-3 py-1.5 border-b',
+          injured   ? 'bg-danger/15 border-danger/25' : 'bg-warn/12 border-warn/25',
+        )}>
+          <AlertTriangle size={11} className={injured ? 'text-danger' : 'text-warn'} />
+          <span className={clsx('text-[11px] font-bold', injured ? 'text-danger' : 'text-warn')}>
+            {injured ? 'Jogador lesionado' : 'Jogador suspenso'} — verifique antes de dar lance
+          </span>
+        </div>
+      )}
+
       {/* Player header */}
-      <div className="flex items-center gap-3 p-4">
-        <Avatar nick={player.nick} pos={player.pos} size="lg" />
+      <div className={clsx('flex items-center gap-3 p-4', unavail && 'opacity-80')}>
+        <div className="relative">
+          <Avatar nick={player.nick} pos={player.pos} size="lg" />
+          {unavail && (
+            <span className={clsx(
+              'absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black border-2 border-surface',
+              injured ? 'bg-danger text-white' : 'bg-warn text-bg',
+            )}>!</span>
+          )}
+        </div>
         <div className="flex-1 min-w-0">
           <div className="font-bold text-white text-sm truncate">{player.nick}</div>
           <div className="flex items-center gap-1.5 mt-1">

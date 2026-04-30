@@ -6,13 +6,14 @@ import AuctionCard from '@/components/AuctionCard';
 import CoinBalance from '@/components/CoinBalance';
 import CountdownTimer from '@/components/CountdownTimer';
 import Badge from '@/components/Badge';
+import PlayerStatusBadge from '@/components/PlayerStatusBadge';
 import { Avatar } from '@/components/PlayerRow';
 import useStore from '@/store/useStore';
 import { useRouter } from 'next/navigation';
 import { ALL_PLAYERS } from '@/data/mock';
 
 export default function DashboardPage() {
-  const { user, team, coins, round, league, auctions, simulateOutbid } = useStore();
+  const { user, team, coins, round, league, auctions, playerStatuses, simulateOutbid } = useStore();
   const router = useRouter();
 
   const sorted = [...(league?.members ?? [])].sort((a, b) => b.pts - a.pts);
@@ -20,7 +21,11 @@ export default function DashboardPage() {
   const myEntry = sorted.find(m => m.teamId === 'team_me');
 
   const myPlayers = (team.players ?? [])
-    .map(id => ALL_PLAYERS.find(p => p.id === id))
+    .map(id => {
+      const p = ALL_PLAYERS.find(p => p.id === id);
+      if (!p) return null;
+      return playerStatuses[id] ? { ...p, status: playerStatuses[id] } : p;
+    })
     .filter(Boolean);
 
   const topAuctions = auctions.slice(0, 3);
@@ -84,26 +89,62 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div className="divide-y divide-rim">
-                  {myPlayers.slice(0, 6).map(p => (
-                    <div key={p.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-rim/40 transition-colors">
-                      <Avatar nick={p.nick} pos={p.pos} size="sm" />
-                      <div className="flex-1 min-w-0">
-                        <span className="text-sm font-semibold text-white truncate block">{p.nick}</span>
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                          <Badge label={p.pos} small />
-                          <span className="text-xs text-sub">{p.club}</span>
+                  {myPlayers.slice(0, 6).map(p => {
+                    const injured   = p.status === 'injured';
+                    const suspended = p.status === 'suspended';
+                    const unavail   = injured || suspended;
+                    const isCaptain = p.id === team.captain;
+                    return (
+                      <div
+                        key={p.id}
+                        className={[
+                          'flex items-center gap-0 transition-colors',
+                          injured   ? 'bg-danger/10 hover:bg-danger/15' :
+                          suspended ? 'bg-warn/5    hover:bg-warn/8'    :
+                                      'hover:bg-rim/40',
+                        ].join(' ')}
+                      >
+                        {/* Status strip */}
+                        <div className={[
+                          'self-stretch w-0.5 shrink-0',
+                          injured ? 'bg-danger' : suspended ? 'bg-warn' : 'bg-transparent',
+                        ].join(' ')} />
+
+                        <div className="flex items-center gap-3 px-4 py-2.5 flex-1 min-w-0">
+                          <div className="relative shrink-0">
+                            <Avatar nick={p.nick} pos={p.pos} size="sm" />
+                            {unavail && (
+                              <span className={[
+                                'absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full flex items-center justify-center text-[8px] font-black border border-bg',
+                                injured ? 'bg-danger text-white' : 'bg-warn text-bg',
+                              ].join(' ')}>!</span>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className={`text-sm font-semibold truncate block ${unavail ? 'text-white/60' : 'text-white'}`}>
+                              {p.nick}
+                            </span>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <Badge label={p.pos} small />
+                              <span className="text-xs text-sub">{p.club}</span>
+                            </div>
+                          </div>
+                          <div className="text-right shrink-0 flex flex-col items-end gap-0.5">
+                            {unavail ? (
+                              <PlayerStatusBadge status={p.status} variant="dot" />
+                            ) : (
+                              <>
+                                <div className={`text-sm font-bold ${isCaptain ? 'text-gold' : 'text-green'}`}>
+                                  {isCaptain ? ((p.pts ?? 0) * 2).toFixed(1) : (p.pts ?? 0).toFixed(1)}
+                                </div>
+                                {isCaptain && <div className="text-[9px] text-gold font-bold">CAP ×2</div>}
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right shrink-0">
-                        <div className={`text-sm font-bold ${p.id === team.captain ? 'text-gold' : 'text-green'}`}>
-                          {p.id === team.captain ? ((p.pts ?? 0) * 2).toFixed(1) : (p.pts ?? 0).toFixed(1)}
-                        </div>
-                        {p.id === team.captain && (
-                          <div className="text-[9px] text-gold font-bold">CAP ×2</div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   {myPlayers.length > 6 && (
                     <Link href="/meu-time" className="flex items-center justify-center gap-1 py-2.5 text-xs text-sub hover:text-green transition-colors">
                       +{myPlayers.length - 6} jogadores <ChevronRight size={13} />
