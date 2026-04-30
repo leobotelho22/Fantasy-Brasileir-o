@@ -8,10 +8,12 @@ import CountdownTimer from '@/components/CountdownTimer';
 import Badge from '@/components/Badge';
 import { Avatar } from '@/components/PlayerRow';
 import useStore from '@/store/useStore';
+import { useRouter } from 'next/navigation';
 import { ALL_PLAYERS } from '@/data/mock';
 
 export default function DashboardPage() {
-  const { user, team, coins, round, league, auctions } = useStore();
+  const { user, team, coins, round, league, auctions, simulateOutbid } = useStore();
+  const router = useRouter();
 
   const sorted = [...(league?.members ?? [])].sort((a, b) => b.pts - a.pts);
   const myRank  = sorted.findIndex(m => m.teamId === 'team_me') + 1;
@@ -121,7 +123,8 @@ export default function DashboardPage() {
                   key={a.id}
                   auction={a}
                   isHighBidder={a.highBidderTeamId === 'team_me'}
-                  onBid={() => {}}
+                  onBid={() => router.push('/mercado')}
+                  onSimulateOutbid={a.highBidderTeamId === 'team_me' ? () => simulateOutbid(a.id) : null}
                 />
               ))}
               {topAuctions.length === 0 && (

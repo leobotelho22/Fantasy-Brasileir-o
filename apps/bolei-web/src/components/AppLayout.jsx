@@ -3,9 +3,10 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import clsx from 'clsx';
-import { Home, Users, ShoppingBag, Layers, ArrowLeftRight, Trophy, LogOut, Bitcoin } from 'lucide-react';
+import { Home, Users, ShoppingBag, Layers, ArrowLeftRight, Trophy, LogOut } from 'lucide-react';
 import useStore from '@/store/useStore';
 import CoinBalance from './CoinBalance';
+import ToastContainer from './Toast';
 
 const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: Home },
@@ -17,22 +18,27 @@ const NAV = [
 ];
 
 export default function AppLayout({ children }) {
-  const { isLoggedIn, user, team, coins, logout } = useStore();
+  const { isLoggedIn, team, coins, trades, logout } = useStore();
   const pathname = usePathname();
   const router   = useRouter();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
+  useEffect(() => { if (mounted && !isLoggedIn) router.replace('/login'); }, [mounted, isLoggedIn, router]);
 
-  useEffect(() => {
-    if (mounted && !isLoggedIn) router.replace('/login');
-  }, [mounted, isLoggedIn, router]);
+  // Count pending incoming trades for the badge
+  const pendingTrades = (trades ?? []).filter(
+    t => t.toTeamId === 'team_me' && t.status === 'pending'
+  ).length;
 
   if (!mounted) return <div className="min-h-screen bg-bg" />;
   if (!isLoggedIn) return null;
 
   return (
     <div className="flex min-h-screen bg-bg text-white">
+
+      {/* ── Toast container (always on top) ─────────────────────────── */}
+      <ToastContainer />
 
       {/* ── Sidebar (desktop) ─────────────────────────────────────────── */}
       <aside className="hidden lg:flex flex-col w-60 bg-surface border-r border-rim fixed h-full z-20">
@@ -53,6 +59,7 @@ export default function AppLayout({ children }) {
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
           {NAV.map(({ href, label, icon: Icon }) => {
             const active = pathname.startsWith(href);
+            const badge  = href === '/trades' && pendingTrades > 0 ? pendingTrades : 0;
             return (
               <Link
                 key={href}
@@ -65,20 +72,23 @@ export default function AppLayout({ children }) {
                 )}
               >
                 <Icon size={15} strokeWidth={2.2} />
-                {label}
+                <span className="flex-1">{label}</span>
+                {badge > 0 && (
+                  <span className="w-5 h-5 rounded-full bg-danger text-white text-[10px] font-black flex items-center justify-center">
+                    {badge}
+                  </span>
+                )}
               </Link>
             );
           })}
         </nav>
 
-        {/* User footer */}
+        {/* Footer */}
         <div className="p-4 border-t border-rim space-y-3">
           <div>
             <div className="text-[10px] text-muted uppercase tracking-wider mb-0.5">Meu time</div>
             <div className="text-sm font-bold text-white truncate">{team?.name}</div>
-            <div className="text-xs text-sub mt-0.5">
-              {(team?.players ?? []).length}/23 jogadores
-            </div>
+            <div className="text-xs text-sub mt-0.5">{(team?.players ?? []).length}/23 jogadores</div>
           </div>
           <CoinBalance amount={coins} />
           <button
@@ -93,7 +103,7 @@ export default function AppLayout({ children }) {
 
       {/* ── Main content ──────────────────────────────────────────────── */}
       <div className="flex-1 lg:ml-60 flex flex-col min-h-screen">
-        {/* Top bar (mobile only) */}
+        {/* Top bar (mobile) */}
         <header className="lg:hidden sticky top-0 z-10 bg-surface border-b border-rim px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-green-glow border border-green/30 flex items-center justify-center text-sm font-black text-green">
@@ -101,7 +111,17 @@ export default function AppLayout({ children }) {
             </div>
             <span className="font-black text-white text-sm">Bolei</span>
           </div>
-          <CoinBalance amount={coins} />
+          <div className="flex items-center gap-3">
+            {pendingTrades > 0 && (
+              <Link href="/trades" className="relative">
+                <ArrowLeftRight size={18} className="text-sub" />
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-danger rounded-full text-[9px] font-black text-white flex items-center justify-center">
+                  {pendingTrades}
+                </span>
+              </Link>
+            )}
+            <CoinBalance amount={coins} />
+          </div>
         </header>
 
         <main className="flex-1 max-w-6xl w-full mx-auto px-4 lg:px-8 py-6 pb-24 lg:pb-8">
@@ -109,21 +129,29 @@ export default function AppLayout({ children }) {
         </main>
       </div>
 
-      {/* ── Bottom nav (mobile only) ──────────────────────────────────── */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-rim z-20 safe-b">
+      {/* ── Bottom nav (mobile) ──────────────────────────────────────── */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-rim z-20">
         <div className="flex">
           {NAV.map(({ href, label, icon: Icon }) => {
             const active = pathname.startsWith(href);
+            const badge  = href === '/trades' && pendingTrades > 0 ? pendingTrades : 0;
             return (
               <Link
                 key={href}
                 href={href}
                 className={clsx(
-                  'flex-1 flex flex-col items-center py-2 gap-0.5 transition-colors',
+                  'flex-1 flex flex-col items-center py-2 gap-0.5 transition-colors relative',
                   active ? 'text-green' : 'text-muted'
                 )}
               >
-                <Icon size={19} strokeWidth={2} />
+                <div className="relative">
+                  <Icon size={19} strokeWidth={2} />
+                  {badge > 0 && (
+                    <span className="absolute -top-1 -right-1.5 w-3.5 h-3.5 bg-danger rounded-full text-[8px] font-black text-white flex items-center justify-center">
+                      {badge}
+                    </span>
+                  )}
+                </div>
                 <span className="text-[9px] font-semibold">{label}</span>
               </Link>
             );
