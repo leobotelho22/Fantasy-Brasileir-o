@@ -1,6 +1,6 @@
 'use client';
 import { useState, useMemo } from 'react';
-import { Search, X, Coins, AlertCircle, UserMinus, CheckCircle, Clock } from 'lucide-react';
+import { Search, X, Coins, AlertCircle, UserMinus, CheckCircle, Clock, Lock } from 'lucide-react';
 import AppLayout from '@/components/AppLayout';
 import AuctionCard from '@/components/AuctionCard';
 import PlayerRow from '@/components/PlayerRow';
@@ -10,13 +10,14 @@ import CountdownTimer from '@/components/CountdownTimer';
 import { Avatar } from '@/components/PlayerRow';
 import useStore from '@/store/useStore';
 import { ALL_PLAYERS } from '@/data/mock';
+import { canBid, canDropPlayer } from '@/lib/guards';
 
 const MAX_SQUAD     = 23;
 const MIN_INCREMENT = 10;
 const POSITIONS     = ['TODOS', 'GOL', 'ZAG', 'LAT', 'MEI', 'ATA'];
 
 export default function MercadoPage() {
-  const { coins, auctions, freeAgents, team, placeBid, startAuction, simulateOutbid } = useStore();
+  const { coins, auctions, freeAgents, team, reservedPlayerIds, placeBid, startAuction, simulateOutbid } = useStore();
 
   const [tab,        setTab]        = useState('auctions');
   const [bidModal,   setBidModal]   = useState(null);
@@ -49,16 +50,19 @@ export default function MercadoPage() {
 
   function handleBid() {
     setBidError('');
-    const amount = parseInt(bidAmount, 10);
-    const min    = (bidModal.currentBid ?? 0) + MIN_INCREMENT;
+    const amount  = parseInt(bidAmount, 10);
+    const auction = liveModal; // always use live data from store
 
-    if (isNaN(amount) || amount < min) { setBidError(`Lance mínimo: ${min} moedas.`); return; }
+    const bidErr = canBid(auction, amount, coins, auction?.highBidderTeamId === 'team_me');
+    if (bidErr) { setBidError(bidErr); return; }
 
-    const effectiveCoins = bidModal.alreadyWinning ? coins + bidModal.currentBid : coins;
-    if (amount > effectiveCoins) { setBidError('Saldo insuficiente.'); return; }
-
-    const needsDrop = squadFull && !bidModal.alreadyWinning;
+    const needsDrop = squadFull && auction?.highBidderTeamId !== 'team_me';
     if (needsDrop && !dropId) { setBidError('Seu time está cheio. Escolha um jogador para liberar.'); return; }
+
+    if (dropId) {
+      const dropErr = canDropPlayer({ players: myPlayers.map(p => p.id) }, dropId, reservedPlayerIds);
+      if (dropErr) { setBidError(dropErr); return; }
+    }
 
     setBidLoading(true);
     setTimeout(() => {
@@ -232,13 +236,17 @@ export default function MercadoPage() {
 
                   <div className="rounded-xl border border-rim overflow-hidden max-h-44 overflow-y-auto">
                     {myPlayers.map(p => {
-                      const selected = dropId === p.id;
+                      const selected  = dropId === p.id;
+                      const reserved  = (reservedPlayerIds ?? []).includes(p.id);
                       return (
                         <button
                           key={p.id}
-                          onClick={() => setDropId(selected ? '' : p.id)}
+                          disabled={reserved}
+                          onClick={() => !reserved && setDropId(selected ? '' : p.id)}
                           className={`w-full flex items-center gap-3 px-3 py-2 text-left transition-colors border-b border-rim last:border-0 ${
-                            selected
+                            reserved
+                              ? 'opacity-50 cursor-not-allowed bg-rim/20'
+                              : selected
                               ? 'bg-danger/10 border-l-2 border-l-danger'
                               : 'hover:bg-rim/60'
                           }`}
@@ -251,11 +259,22 @@ export default function MercadoPage() {
                               <span className="text-xs text-sub">{p.club}</span>
                             </div>
                           </div>
-                          <div className="text-right shrink-0">
-                            <div className="text-xs text-green font-bold">{(p.pts ?? 0).toFixed(1)}</div>
-                            <div className="text-[10px] text-muted">pts</div>
+                          <div className="text-right shrink-0 flex items-center gap-1.5">
+                            {reserved ? (
+                              <span className="flex items-center gap-1 text-[10px] text-warn font-bold">
+                                <Lock size={10} />
+                                Reservado
+                              </span>
+                            ) : (
+                              <>
+                                <div>
+                                  <div className="text-xs text-green font-bold">{(p.pts ?? 0).toFixed(1)}</div>
+                                  <div className="text-[10px] text-muted">pts</div>
+                                </div>
+                                {selected && <UserMinus size={14} className="text-danger ml-1" />}
+                              </>
+                            )}
                           </div>
-                          {selected && <UserMinus size={14} className="text-danger shrink-0 ml-1" />}
                         </button>
                       );
                     })}

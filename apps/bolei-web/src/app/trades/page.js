@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { ArrowDownLeft, ArrowUpRight, ChevronDown, ChevronUp, Check, X, AlertCircle } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, ChevronDown, ChevronUp, Check, X, AlertCircle, Lock } from 'lucide-react';
 import AppLayout from '@/components/AppLayout';
 import Badge from '@/components/Badge';
 import CoinBalance from '@/components/CoinBalance';
@@ -9,7 +9,7 @@ import useStore from '@/store/useStore';
 import { ALL_PLAYERS } from '@/data/mock';
 
 export default function TradesPage() {
-  const { trades, coins, acceptTrade, rejectTrade } = useStore();
+  const { trades, coins, reservedPlayerIds, acceptTrade, rejectTrade } = useStore();
   const [tab, setTab] = useState('incoming');
 
   const incoming = trades.filter(t => t.toTeamId   === 'team_me' && t.status === 'pending');
@@ -70,6 +70,7 @@ export default function TradesPage() {
                   key={t.id}
                   trade={t}
                   direction="outgoing"
+                  reservedPlayerIds={reservedPlayerIds}
                   onReject={() => rejectTrade(t.id)}
                 />
               ))
@@ -79,7 +80,7 @@ export default function TradesPage() {
   );
 }
 
-function TradeCard({ trade, direction, onAccept, onReject }) {
+function TradeCard({ trade, direction, reservedPlayerIds = [], onAccept, onReject }) {
   const [open, setOpen] = useState(true);
 
   const offered   = (trade.offeredPlayers   ?? []).map(id => ALL_PLAYERS.find(p => p.id === id)).filter(Boolean);
@@ -126,6 +127,7 @@ function TradeCard({ trade, direction, onAccept, onReject }) {
               label={isIncoming ? 'Eles oferecem' : 'Você oferece'}
               players={offered}
               coins={trade.offeredCoins ?? 0}
+              reservedPlayerIds={!isIncoming ? reservedPlayerIds : []}
             />
 
             {/* Arrow */}
@@ -176,24 +178,35 @@ function TradeCard({ trade, direction, onAccept, onReject }) {
   );
 }
 
-function PlayerColumn({ label, players, coins }) {
+function PlayerColumn({ label, players, coins, reservedPlayerIds = [] }) {
   return (
     <div>
       <div className="text-[10px] text-muted font-bold uppercase tracking-wider mb-2">{label}</div>
       <div className="space-y-1.5">
-        {players.map(p => (
-          <div key={p.id} className="flex items-center gap-2 bg-bg rounded-lg px-2.5 py-2">
-            <Avatar nick={p.nick} pos={p.pos} size="sm" />
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold text-white truncate">{p.nick}</div>
-              <div className="flex items-center gap-1 mt-0.5">
-                <Badge label={p.pos} small />
-                <span className="text-xs text-sub">{p.club}</span>
+        {players.map(p => {
+          const reserved = reservedPlayerIds.includes(p.id);
+          return (
+            <div key={p.id} className="flex items-center gap-2 bg-bg rounded-lg px-2.5 py-2">
+              <Avatar nick={p.nick} pos={p.pos} size="sm" />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold text-white truncate">{p.nick}</div>
+                <div className="flex items-center gap-1 mt-0.5">
+                  <Badge label={p.pos} small />
+                  <span className="text-xs text-sub">{p.club}</span>
+                </div>
+              </div>
+              <div className="shrink-0 flex items-center gap-1.5">
+                {reserved && (
+                  <span className="flex items-center gap-0.5 text-[10px] text-warn font-bold">
+                    <Lock size={10} />
+                    Reservado
+                  </span>
+                )}
+                <div className="text-xs text-green font-bold">{(p.pts ?? 0).toFixed(1)}</div>
               </div>
             </div>
-            <div className="text-xs text-green font-bold shrink-0">{(p.pts ?? 0).toFixed(1)}</div>
-          </div>
-        ))}
+          );
+        })}
         {coins > 0 && (
           <div className="flex items-center gap-2 bg-bg rounded-lg px-2.5 py-2">
             <div className="w-8 h-8 rounded-full bg-gold/15 border border-gold/30 flex items-center justify-center">
