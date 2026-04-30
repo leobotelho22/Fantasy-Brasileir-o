@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import Badge from './Badge';
+import PlayerStatusBadge from './PlayerStatusBadge';
 
 const POS_BG = {
   GOL: 'bg-gol/20 text-gol',
@@ -21,8 +22,6 @@ export function Avatar({ nick, pos, size = 'md' }) {
 export default function PlayerRow({ player, right, action, compact = false }) {
   if (!player) return null;
 
-  const statusLabel = { injured: 'Lesionado', suspended: 'Suspenso' }[player.status];
-
   return (
     <div className={clsx(
       'flex items-center gap-3 bg-surface border border-rim rounded-lg transition-colors hover:border-[#253354]',
@@ -33,11 +32,11 @@ export default function PlayerRow({ player, right, action, compact = false }) {
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className={clsx('font-semibold text-white truncate', compact ? 'text-sm' : 'text-sm')}>
+          <span className="font-semibold text-sm text-white truncate">
             {player.nick}
           </span>
-          {statusLabel && (
-            <Badge label={statusLabel} type="status" small />
+          {player.status && (
+            <PlayerStatusBadge status={player.status} variant="full" />
           )}
         </div>
         <div className="flex items-center gap-2 mt-0.5">

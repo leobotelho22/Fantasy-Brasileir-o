@@ -1,9 +1,10 @@
 'use client';
 import { useState } from 'react';
-import { Star, StarOff, UserMinus, AlertTriangle } from 'lucide-react';
+import { Star, UserMinus, AlertTriangle } from 'lucide-react';
 import AppLayout from '@/components/AppLayout';
 import Badge from '@/components/Badge';
 import CoinBalance from '@/components/CoinBalance';
+import PlayerStatusBadge from '@/components/PlayerStatusBadge';
 import { Avatar } from '@/components/PlayerRow';
 import useStore from '@/store/useStore';
 import { ALL_PLAYERS } from '@/data/mock';
@@ -68,6 +69,29 @@ export default function MyTeamPage() {
           <span className="text-sub text-sm">Nenhum jogador no time ainda.</span>
         )}
       </div>
+
+      {/* Alert: injured or suspended players in the squad */}
+      {(() => {
+        const atRisk = myPlayers.filter(p => p.status === 'injured' || p.status === 'suspended');
+        if (atRisk.length === 0) return null;
+        return (
+          <div className="flex items-start gap-3 bg-danger/10 border border-danger/25 rounded-xl px-4 py-3 mb-5">
+            <AlertTriangle size={16} className="text-danger mt-0.5 shrink-0" />
+            <div>
+              <div className="text-sm font-bold text-danger mb-1">
+                {atRisk.length} jogador{atRisk.length > 1 ? 'es' : ''} indisponível{atRisk.length > 1 ? 'is' : ''}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {atRisk.map(p => (
+                  <span key={p.id} className="text-xs text-danger/80 bg-danger/10 rounded px-2 py-0.5 font-semibold">
+                    {p.nick} · <span className="capitalize">{p.status === 'injured' ? 'Lesionado' : 'Suspenso'}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Controls: sort */}
       <div className="flex items-center gap-2 mb-4">
@@ -143,14 +167,7 @@ export default function MyTeamPage() {
 
                 {/* Status */}
                 <div className="hidden sm:flex justify-end">
-                  {p.status !== 'available' && (
-                    <div className="flex items-center gap-1">
-                      <AlertTriangle size={11} className={p.status === 'injured' ? 'text-danger' : 'text-warn'} />
-                      <span className={`text-xs font-semibold ${p.status === 'injured' ? 'text-danger' : 'text-warn'}`}>
-                        {p.status === 'injured' ? 'Lesionado' : 'Suspenso'}
-                      </span>
-                    </div>
-                  )}
+                  <PlayerStatusBadge status={p.status} variant="badge" />
                 </div>
 
                 {/* Captain toggle */}

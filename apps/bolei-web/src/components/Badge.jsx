@@ -10,7 +10,8 @@ const POS_STYLE = {
 };
 
 const STATUS_STYLE = {
-  available:  'bg-green-glow  text-green  border-green/30',
+  probable:   'bg-green-glow  text-green  border-green/30',
+  bench:      'bg-warn/15     text-warn   border-warn/40',
   injured:    'bg-danger/15   text-danger border-danger/40',
   suspended:  'bg-warn/15     text-warn   border-warn/40',
 };

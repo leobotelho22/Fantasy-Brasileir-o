@@ -3,6 +3,7 @@ import { useState, useMemo } from 'react';
 import { Search, X, Clock } from 'lucide-react';
 import AppLayout from '@/components/AppLayout';
 import Badge from '@/components/Badge';
+import PlayerStatusBadge from '@/components/PlayerStatusBadge';
 import { Avatar } from '@/components/PlayerRow';
 import useStore from '@/store/useStore';
 import { ALL_PLAYERS } from '@/data/mock';
@@ -144,7 +145,10 @@ export default function DraftPage() {
                 >
                   <Avatar nick={p.nick} pos={p.pos} size="sm" />
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-sm text-white truncate">{p.nick}</div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-sm text-white truncate">{p.nick}</span>
+                      <PlayerStatusBadge status={p.status} variant="dot" />
+                    </div>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <Badge label={p.pos} small />
                       <span className="text-xs text-sub">{p.club}</span>

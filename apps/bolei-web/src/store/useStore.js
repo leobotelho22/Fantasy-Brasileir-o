@@ -19,6 +19,22 @@ const useStore = create((set, get) => ({
   round:  ROUND,
   league: LEAGUE,
 
+  // ── Player statuses (live overrides on top of mock data) ──────────────────
+  // Keys are player IDs, values are 'probable' | 'bench' | 'injured' | 'suspended'.
+  // When empty the mock status from ALL_PLAYERS is used.
+  playerStatuses: {},
+
+  // Call this with data from an API to update one or many players at once.
+  // Example: store.updatePlayerStatuses({ p3: 'probable', p18: 'injured' })
+  updatePlayerStatuses: (updates) =>
+    set(state => ({ playerStatuses: { ...state.playerStatuses, ...updates } })),
+
+  // Resolve final status for a player (live override takes precedence over mock).
+  getPlayerStatus: (playerId) => {
+    const state = get();
+    return state.playerStatuses[playerId] ?? ALL_PLAYERS.find(p => p.id === playerId)?.status ?? 'probable';
+  },
+
   // ── Toast notifications ───────────────────────────────────────────────────
   notifications: [],
 
